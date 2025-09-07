@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Memory Allocation Algorithm</title>
+  <style>
+    * {
+      font-family: "Lucida Sans", "Lucida Sans Regular", "Lucida Grande",
+        "Lucida Sans Unicode", Geneva, Verdana, sans-serif;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    }
+    .title {
+      background-color: #5b89bb;
+      border: 3px solid rgb(8, 1, 1);
+      box-shadow: 3px 4px 3px;
+      border-radius: 15px;
+      width: auto;
+      margin: 20px auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      margin-top: 1.5%;
+      padding: 20px;
+      background-color: #f5d9b8;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 10pt;
+    }
+    .input-container {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input[type="number"] {
+      width: 60%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-sizing: border-box;
+      font-size: 15px;
+      margin-bottom: 10px;
+    }
+    button {
+      padding: 8px 15px;
+      background-color: #0953a1;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      display: block;
+      margin: 0 auto;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #82abd6;
+    }
+    #output {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #f0f0f0;
+      border-radius: 10px;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    }
+    hr {
+      margin-top: 20px;
+      margin-bottom: 20px;
+      border: none;
+      border-top: 1px solid #ccc;
+    }
+    h2 {
+      margin-bottom: 10px;
+      color: #0953a1;
+      text-align: center;
+    }
+    p {
+      margin: 10px 0;
+    }
+    .algorithm {
+      margin-top: 20px;
+      padding: 20px;
+      background-color: #cce5ff;
+      border-radius: 5px;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    }
+    .results {
+      font-weight: bold;
+    }
+    .memory-visualization {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #e0f7fa;
+      border-radius: 5px;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    }
+    .memory-block {
+      height: 40px;
+      display: flex;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    .process-segment {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      border-right: 1px dashed #333;
+    }
+    .free-segment {
+      background-color: #e0e0e0;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #333;
+      font-weight: bold;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background-color: #4285f4;
+      color: white;
+    }
+    tr:nth-child(even) {
+      background-color: #f2f2f2;
+    }
+    .summary {
+      margin-top: 15px;
+      padding: 10px;
+      background-color: #f5f5f5;
+      border-radius: 5px;
+      border-left: 5px solid #4285f4;
+    }
+    .summary span {
+      font-weight: bold;
+      color: #0953a1;
+    }
+    .hidden {
+      display: none;
+    }
+    .data-display {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 15px 0;
+    }
+    .data-item {
+      background-color: #e0f7fa;
+      padding: 8px 12px;
+      border-radius: 5px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .comparison {
+      background-color: #fff9c4;
+      padding: 15px;
+      border-radius: 5px;
+      margin-top: 20px;
+      border-left: 5px solid #fbc02d;
+    }
+    .winner-row {
+      background-color: #e8f5e9 !important;
+      font-weight: bold;
+    }
+    .criteria-highlight {
+      background-color: #e3f2fd;
+      padding: 10px;
+      border-radius: 5px;
+      margin-top: 15px;
+    }
+    .criteria-highlight ol li {
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="title">
+      <h1>Memory Allocation Algorithm</h1>
+    </div>
+
+    <div class="input-container">
+      <label for="block-num">Enter number of memory blocks:</label>
+      <input type="number" id="block-num" min="1" />
+      <button onclick="addBlocks()">Submit</button>
+    </div>
+    <div id="block-sizes" class="hidden data-display"></div>
+    
+    <div class="input-container">
+      <label for="process-num">Enter number of processes:</label>
+      <input type="number" id="process-num" min="1" />
+      <button onclick="addProcesses()">Submit</button>
+    </div>
+    <div id="process-sizes" class="hidden data-display"></div>
+    
+    <button onclick="allocateMemory()" id="allocate-btn" style="margin-top: 20px; padding: 10px 20px; font-size: 16px;">Allocate Memory</button>
+    <div id="output"></div>
+  </div>
+  <script>
+    let blockSizes = [];
+    let processSizes = [];
+    let originalBlockSizes = [];
+
+    function addBlocks() {
+      const blockNum = parseInt(document.getElementById("block-num").value);
+      if (!blockNum || blockNum <= 0) {
+        alert("Please enter a valid number of blocks.");
+        return;
+      }
+      
+      blockSizes = [];
+      originalBlockSizes = [];
+      const blockSizesContainer = document.getElementById("block-sizes");
+      blockSizesContainer.innerHTML = "";
+      
+      for (let i = 0; i < blockNum; i++) {
+        const size = parseInt(prompt(`Enter size of block ${i + 1}`));
+        if (!size || size <= 0) {
+          alert("Please enter a valid block size.");
+          return;
+        }
+        
+        blockSizes.push(size);
+        originalBlockSizes.push(size);
+        
+        const blockEl = document.createElement("div");
+        blockEl.className = "data-item";
+        blockEl.innerHTML = `Block ${i + 1}: <b>${size}</b> units`;
+        blockSizesContainer.appendChild(blockEl);
+      }
+      
+      blockSizesContainer.classList.remove("hidden");
+    }
+
+    function addProcesses() {
+      const processNum = parseInt(document.getElementById("process-num").value);
+      if (!processNum || processNum <= 0) {
+        alert("Please enter a valid number of processes.");
+        return;
+      }
+      
+      processSizes = [];
+      const processSizesContainer = document.getElementById("process-sizes");
+      processSizesContainer.innerHTML = "";
+      
+      for (let i = 0; i < processNum; i++) {
+        const size = parseInt(prompt(`Enter size of process ${i + 1}`));
+        if (!size || size <= 0) {
+          alert("Please enter a valid process size.");
+          return;
+        }
+        
+        processSizes.push(size);
+        
+        const processEl = document.createElement("div");
+        processEl.className = "data-item";
+        processEl.innerHTML = `Process ${i + 1}: <b>${size}</b> units`;
+        processSizesContainer.appendChild(processEl);
+      }
+      
+      processSizesContainer.classList.remove("hidden");
+    }
+
+    function getRandomColor(index) {
+      const colors = [
+        "#4285F4", "#EA4335", "#FBBC05", "#34A853", 
+        "#8E24AA", "#D81B60", "#00ACC1", "#43A047",
+        "#E65100", "#5E35B1", "#1E88E5", "#546E7A"
+      ];
+      return colors[index % colors.length];
+    }
+
+    function createMemoryVisualization(blockSizes, allocation) {
+      let html = '<div class="memory-visualization"><h3>Memory Blocks Visualization</h3>';
+      
+      // Create a deep copy of original block sizes
+      const remainingSpace = [...originalBlockSizes];
+      
+      // Calculate used space for each block
+      const usedSpace = new Array(blockSizes.length).fill(0);
+      
+      for (let i = 0; i < allocation.length; i++) {
+        if (allocation[i] !== -1) {
+          usedSpace[allocation[i]] += processSizes[i];
+        }
+      }
+      
+      // Create visualization for each memory block
+      for (let i = 0; i < blockSizes.length; i++) {
+        const totalSize = originalBlockSizes[i];
+        const used = usedSpace[i];
+        const free = totalSize - used;
+        
+        html += `<div class="memory-block">`;
+        
+        // Collect all processes in this block
+        const blockProcesses = [];
+        for (let j = 0; j < allocation.length; j++) {
+          if (allocation[j] === i) {
+            blockProcesses.push({
+              index: j,
+              size: processSizes[j]
+            });
+          }
+        }
+        
+        // Render process segments
+        for (let proc of blockProcesses) {
+          const widthPercent = (proc.size / totalSize) * 100;
+          html += `<div class="process-segment" style="width: ${widthPercent}%; background-color: ${getRandomColor(proc.index)}">
+                    P${proc.index + 1} (${proc.size})
+                  </div>`;
+        }
+        
+        // Render free space if any
+        if (free > 0) {
+          const widthPercent = (free / totalSize) * 100;
+          html += `<div class="free-segment" style="width: ${widthPercent}%">
+                    Free (${free})
+                  </div>`;
+        }
+        
+        html += `</div>`;
+      }
+      
+      html += '</div>';
+      return html;
+    }
+
+    function printResults(outputDiv, allocation, totalSpaceLeft, smallestHoleSize, largestHoleSize, algorithm) {
+      // Create table for allocation results
+      let tableHtml = `
+        <table>
+          <tr>
+            <th>Process No.</th>
+            <th>Process Size</th>
+            <th>Block No.</th>
+            <th>Status</th>
+          </tr>
+      `;
+      
+      let allocatedCount = 0;
+      for (let i = 0; i < allocation.length; i++) {
+        const isAllocated = allocation[i] !== -1;
+        if (isAllocated) allocatedCount++;
+        
+        tableHtml += `
+          <tr>
+            <td>Process ${i + 1}</td>
+            <td>${processSizes[i]}</td>
+            <td>${isAllocated ? 'Block ' + (allocation[i] + 1) : 'N/A'}</td>
+            <td style="color: ${isAllocated ? 'green' : 'red'}; font-weight: bold;">
+              ${isAllocated ? 'Allocated' : 'Not Allocated'}
+            </td>
+          </tr>
+        `;
+      }
+      tableHtml += '</table>';
+      
+      // Calculate total memory size
+      const totalMemorySize = originalBlockSizes.reduce((a, b) => a + b, 0);
+      
+      // Calculate space utilization
+      const spaceUtilization = ((totalMemorySize - totalSpaceLeft) / totalMemorySize) * 100;
+      
+      // Create summary section
+      const summaryHtml = `
+        <div class="summary">
+          <p>→ Total Processes: <span>${allocation.length}</span></p>
+          <p>→ Allocated Processes: <span>${allocatedCount}</span></p>
+          <p>→ Unallocated Processes: <span>${allocation.length - allocatedCount}</span></p>
+          <p>→ Total Space Left: <span>${totalSpaceLeft}</span> units</p>
+          <p>→ Smallest Hole Size: <span>${smallestHoleSize !== Infinity ? smallestHoleSize : 'N/A'}</span></p>
+          <p>→ Largest Hole Size: <span>${largestHoleSize !== -Infinity ? largestHoleSize : 'N/A'}</span></p>
+          <p>→ Memory Utilization: <span>${Math.round(spaceUtilization)}%</span></p>
+        </div>
+      `;
+      
+      // Add memory visualization
+      const visualizationHtml = createMemoryVisualization(blockSizes, allocation);
+      
+      // Combine all sections
+      outputDiv.innerHTML += `
+        <div class="algorithm">
+          <h2>${algorithm}</h2>
+          ${tableHtml}
+          ${visualizationHtml}
+          ${summaryHtml}
+        </div>
+      `;
+      
+      return {
+        allocatedCount,
+        spaceUtilization,
+        smallestHoleSize: smallestHoleSize !== Infinity ? smallestHoleSize : Infinity,
+        largestHoleSize: largestHoleSize !== -Infinity ? largestHoleSize : 0,
+        totalSpaceLeft
+      };
+    }
+
+    function firstFit(blockSizes, processSizes) {
+      const allocation = new Array(processSizes.length).fill(-1);
+      const blockSizesCopy = [...blockSizes];
+      let totalSpaceLeft = blockSizesCopy.reduce((acc, val) => acc + val, 0);
+      const outputDiv = document.getElementById("output");
+      let smallestHoleSize = Infinity;
+      let largestHoleSize = -Infinity;
+
+      for (let i = 0; i < processSizes.length; i++) {
+        for (let j = 0; j < blockSizesCopy.length; j++) {
+          if (blockSizesCopy[j] >= processSizes[i]) {
+            allocation[i] = j;
+            blockSizesCopy[j] -= processSizes[i];
+            totalSpaceLeft -= processSizes[i];
+            
+            if (blockSizesCopy[j] > 0) {
+              smallestHoleSize = Math.min(smallestHoleSize, blockSizesCopy[j]);
+              largestHoleSize = Math.max(largestHoleSize, blockSizesCopy[j]);
+            }
+            break;
+          }
+        }
+      }
+
+      const results = printResults(
+        outputDiv,
+        allocation,
+        totalSpaceLeft,
+        smallestHoleSize !== Infinity ? smallestHoleSize : 0,
+        largestHoleSize !== -Infinity ? largestHoleSize : 0,
+        "First Fit Algorithm"
+      );
+      
+      return results;
+    }
+
+    function bestFit(blockSizes, processSizes) {
+      const allocation = new Array(processSizes.length).fill(-1);
+      const blockSizesCopy = [...blockSizes];
+      let totalSpaceLeft = blockSizesCopy.reduce((acc, val) => acc + val, 0);
+      const outputDiv = document.getElementById("output");
+      let smallestHoleSize = Infinity;
+      let largestHoleSize = -Infinity;
+
+      for (let i = 0; i < processSizes.length; i++) {
+        let bestIdx = -1;
+        for (let j = 0; j < blockSizesCopy.length; j++) {
+          if (blockSizesCopy[j] >= processSizes[i]) {
+            if (bestIdx === -1 || blockSizesCopy[bestIdx] > blockSizesCopy[j]) {
+              bestIdx = j;
+            }
+          }
+        }
+        
+        if (bestIdx !== -1) {
+          allocation[i] = bestIdx;
+          blockSizesCopy[bestIdx] -= processSizes[i];
+          totalSpaceLeft -= processSizes[i];
+          
+          if (blockSizesCopy[bestIdx] > 0) {
+            smallestHoleSize = Math.min(smallestHoleSize, blockSizesCopy[bestIdx]);
+            largestHoleSize = Math.max(largestHoleSize, blockSizesCopy[bestIdx]);
+          }
+        }
+      }
+
+      const results = printResults(
+        outputDiv,
+        allocation,
+        totalSpaceLeft,
+        smallestHoleSize !== Infinity ? smallestHoleSize : 0,
+        largestHoleSize !== -Infinity ? largestHoleSize : 0,
+        "Best Fit Algorithm"
+      );
+      
+      return results;
+    }
+
+    function worstFit(blockSizes, processSizes) {
+      const allocation = new Array(processSizes.length).fill(-1);
+      const blockSizesCopy = [...blockSizes];
+      let totalSpaceLeft = blockSizesCopy.reduce((acc, val) => acc + val, 0);
+      const outputDiv = document.getElementById("output");
+      let smallestHoleSize = Infinity;
+      let largestHoleSize = -Infinity;
+
+      for (let i = 0; i < processSizes.length; i++) {
+        let worstIdx = -1;
+        for (let j = 0; j < blockSizesCopy.length; j++) {
+          if (blockSizesCopy[j] >= processSizes[i]) {
+            if (worstIdx === -1 || blockSizesCopy[worstIdx] < blockSizesCopy[j]) {
+              worstIdx = j;
+            }
+          }
+        }
+        
+        if (worstIdx !== -1) {
+          allocation[i] = worstIdx;
+          blockSizesCopy[worstIdx] -= processSizes[i];
+          totalSpaceLeft -= processSizes[i];
+          
+          if (blockSizesCopy[worstIdx] > 0) {
+            smallestHoleSize = Math.min(smallestHoleSize, blockSizesCopy[worstIdx]);
+            largestHoleSize = Math.max(largestHoleSize, blockSizesCopy[worstIdx]);
+          }
+        }
+      }
+
+      const results = printResults(
+        outputDiv,
+        allocation,
+        totalSpaceLeft,
+        smallestHoleSize !== Infinity ? smallestHoleSize : 0,
+        largestHoleSize !== -Infinity ? largestHoleSize : 0,
+        "Worst Fit Algorithm"
+      );
+      
+      return results;
+    }
+
+    function allocateMemory() {
+      if (blockSizes.length === 0 || processSizes.length === 0) {
+        alert("Please enter block and process sizes first.");
+        return;
+      }
+      
+      const outputDiv = document.getElementById("output");
+      outputDiv.innerHTML = "<h2>Memory Allocation Results</h2>";
+      
+      // Run all three algorithms with copies of the original data
+      const firstFitResults = firstFit([...originalBlockSizes], [...processSizes]);
+      outputDiv.innerHTML += "<hr>";
+      
+      const bestFitResults = bestFit([...originalBlockSizes], [...processSizes]);
+      outputDiv.innerHTML += "<hr>";
+      
+      const worstFitResults = worstFit([...originalBlockSizes], [...processSizes]);
+      
+      // Calculate total memory size
+      const totalMemorySize = originalBlockSizes.reduce((a, b) => a + b, 0);
+      
+      // Create comparison table
+      let comparisonHtml = `
+        <div class="comparison">
+          <h2>Algorithm Comparison</h2>
+          <div class="criteria-highlight">
+            <p><strong>Selection criteria in order of priority:</strong></p>
+            <ol>
+              <li>Higher Space Utilization (higher % is better)</li>
+              <li>Smaller "Smallest Hole Size" (smaller is better)</li>
+              <li>Smaller "Largest Hole Size" (smaller is better)</li>
+            </ol>
+          </div>
+          <table>
+            <tr>
+              <th>Algorithm</th>
+              <th>Space Utilization (%)</th>
+              <th>Smallest Hole Size</th>
+              <th>Largest Hole Size</th>
+              <th>Processes Allocated</th>
+            </tr>`;
+      
+      // Determine the best algorithm by our criteria      
+      // First, collect all results in a structured way for comparison
+      const results = [
+        {
+          name: "First Fit",
+          spaceUtilization: firstFitResults.spaceUtilization,
+          smallestHoleSize: firstFitResults.smallestHoleSize,
+          largestHoleSize: firstFitResults.largestHoleSize,
+          allocatedCount: firstFitResults.allocatedCount
+        },
+        {
+          name: "Best Fit",
+          spaceUtilization: bestFitResults.spaceUtilization,
+          smallestHoleSize: bestFitResults.smallestHoleSize,
+          largestHoleSize: bestFitResults.largestHoleSize,
+          allocatedCount: bestFitResults.allocatedCount
+        },
+        {
+          name: "Worst Fit",
+          spaceUtilization: worstFitResults.spaceUtilization,
+          smallestHoleSize: worstFitResults.smallestHoleSize,
+          largestHoleSize: worstFitResults.largestHoleSize,
+          allocatedCount: worstFitResults.allocatedCount
+        }
+      ];
+      
+      // Find the best algorithm based on our prioritized criteria
+      // 1. Space Utilization (highest)
+      const maxUtilization = Math.max(...results.map(r => r.spaceUtilization));
+      const highestUtilizationAlgos = results.filter(r => r.spaceUtilization === maxUtilization);
+      
+      let bestAlgorithm;
+      
+      if (highestUtilizationAlgos.length === 1) {
+        // Clear winner based on space utilization
+        bestAlgorithm = highestUtilizationAlgos[0];
+      } else {
+        // Tie on space utilization, check smallest hole size (smaller is better)
+        const minSmallestHole = Math.min(...highestUtilizationAlgos.map(r => r.smallestHoleSize === Infinity ? Number.MAX_VALUE : r.smallestHoleSize));
+        const bestSmallestHoleAlgos = highestUtilizationAlgos.filter(r => 
+          (r.smallestHoleSize === Infinity ? Number.MAX_VALUE : r.smallestHoleSize) === minSmallestHole);
+        
+        if (bestSmallestHoleAlgos.length === 1) {
+          // Clear winner based on smallest hole size
+          bestAlgorithm = bestSmallestHoleAlgos[0];
+        } else {
+          // Tie on smallest hole size, check largest hole size (smaller is better)
+          const minLargestHole = Math.min(...bestSmallestHoleAlgos.map(r => r.largestHoleSize));
+          const bestLargestHoleAlgos = bestSmallestHoleAlgos.filter(r => r.largestHoleSize === minLargestHole);
+          
+          // Take the first one if still tied
+          bestAlgorithm = bestLargestHoleAlgos[0];
+        }
+      }
+      
+      // Add each algorithm's results to the comparison table
+      results.forEach(algo => {
+        const isWinner = algo.name === bestAlgorithm.name;
+        comparisonHtml += `
+          <tr class="${isWinner ? 'winner-row' : ''}">
+            <td>${algo.name}${isWinner ? ' (Best)' : ''}</td>
+            <td>${Math.round(algo.spaceUtilization)}%</td>
+            <td>${algo.smallestHoleSize === Infinity ? 'N/A' : algo.smallestHoleSize}</td>
+            <td>${algo.largestHoleSize}</td>
+            <td>${algo.allocatedCount}/${processSizes.length}</td>
+          </tr>
+        `;
+      });
+      
+      comparisonHtml += `</table>`;
+      
+      // Add explanation of why the best algorithm was chosen
+      let explanationText = `<div class="summary">
+        <p>Based on our prioritized criteria, <span>${bestAlgorithm.name}</span> is the most suitable algorithm because:`;
+      
+      if (results[0].spaceUtilization !== results[1].spaceUtilization || results[0].spaceUtilization !== results[2].spaceUtilization) {
+        explanationText += `
+          <p>1. It achieved the highest space utilization at <span>${Math.round(bestAlgorithm.spaceUtilization)}%</span>, which is our primary criterion.</p>
+        `;
+      } else {
+        explanationText += `
+          <p>1. All algorithms achieved the same space utilization (${Math.round(bestAlgorithm.spaceUtilization)}%), so we moved to the next criterion.</p>
+        `;
+        
+        if (highestUtilizationAlgos.length > 1 && bestAlgorithm.smallestHoleSize !== Infinity) {
+          explanationText += `
+            <p>2. Among those with equal utilization, ${bestAlgorithm.name} has the smallest "smallest hole size" at <span>${bestAlgorithm.smallestHoleSize}</span> units, which is our secondary criterion.</p>
+          `;
+          
+          if (bestSmallestHoleAlgos && bestSmallestHoleAlgos.length > 1) {
+            explanationText += `
+              <p>3. For algorithms with equal utilization and smallest hole size, ${bestAlgorithm.name} has the smallest "largest hole size" at <span>${bestAlgorithm.largestHoleSize}</span> units.</p>
+            `;
+          }
+        }
+      }
+      
+      explanationText += `</div>`;
+      
+      comparisonHtml += explanationText;
+      comparisonHtml += `</div>`;
+      
+      outputDiv.innerHTML += comparisonHtml;
+      
+      // Scroll to results
+      outputDiv.scrollIntoView({behavior: "smooth"});
+    }
+  </script>
+</body>
+</html>
